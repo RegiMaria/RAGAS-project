@@ -127,3 +127,31 @@ Para forçar a reconstrução do índice:
 rag = RAGPipeline()
 rag.build(force_rebuild=True)
 ```
+## Referências
+
+- HUYEN, Chip. *AI Engineering*. Sebastopol: O'Reilly Media, 2024.  
+  [Acessar conteúdo](https://learning.oreilly.com/library/view/ai-engineering/9781098166298/ch06.html)
+
+- RAGAS. *Faithfulness Metric*.  
+  [Documentação](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/)
+
+- RAGAS. *Answer Relevance Metric*.  
+  [Documentação](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/answer_relevance/)
+
+- RAGAS. *Context Recall Metric*.  
+  [Documentação](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/)
+
+- RAGAS. *Context Precision Metric*.  
+  [Documentação](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_precision/)
+
+- DHANAKOTTI, Karthikeyan. *RAGAS for RAG in LLMs: A Comprehensive Guide to Evaluation Metrics*. Medium, 2024.  
+  [Ler artigo](https://dkaarthick.medium.com/ragas-for-rag-in-llms-a-comprehensive-guide-to-evaluation-metrics-3aca142d6e38)
+
+- GARSON, Jessica. *Evaluating your Elasticsearch LLM Applications with Ragas*. Elastic, 2025.  
+  [Ler artigo](https://www.elastic.co/search-labs/blog/elasticsearch-ragas-llm-app-evaluation)
+
+- ES, Shahul et al. *Ragas: Automated Evaluation of Retrieval Augmented Generation*. EACL, 2024.  
+  [Acessar paper](https://aclanthology.org/2024.eacl-demo.16/)
+
+- SHELTON, Robert. *Get Better RAG Responses with Ragas*. Redis Blog, 2024.  
+  [Ler artigo](https://redis.io/blog/get-better-rag-responses-with-ragas/)
