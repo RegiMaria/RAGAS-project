@@ -57,7 +57,7 @@ RAGAS-Project/
 
 ```bash
 # 1. Clonar o repositório
-git clone <url-do-repo>
+git clone https://github.com/RegiMaria/RAGAS-project.git
 cd RAGAS-Project
 
 # 2. Criar e ativar ambiente virtual
