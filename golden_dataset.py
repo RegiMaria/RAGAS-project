@@ -31,7 +31,8 @@ load_dotenv()
 # ─────────────────────────────────────────────
 from ragas.testset.generator import TestsetGenerator
 from ragas.testset.evolutions import simple, reasoning, multi_context
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_anthropic import ChatAnthropic
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 import pandas as pd
 
@@ -87,9 +88,9 @@ def generate_golden_dataset(docs) -> pd.DataFrame:
           f"multi_context={DISTRIBUTIONS[multi_context]}\n")
 
     # LLMs usados pelo RAGAS internamente
-    generator_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3)
-    critic_llm = ChatOpenAI(model="gpt-4o", temperature=0)          # modelo mais forte para crítica
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    generator_llm = ChatAnthropic(model="claude-haiku-4-5-20251001", temperature=0.3)
+    critic_llm = ChatAnthropic(model="claude-sonnet-4-6", temperature=0)  # modelo mais forte para crítica
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
     # Cria o gerador
     generator = TestsetGenerator.from_langchain(
@@ -140,9 +141,9 @@ def preview_dataset(df: pd.DataFrame):
 # ─────────────────────────────────────────────
 if __name__ == "__main__":
     # Verifica API key
-    if not os.getenv("OPENAI_API_KEY"):
-        print("❌ OPENAI_API_KEY não encontrada!")
-        print("   Configure: export OPENAI_API_KEY='sk-...'")
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        print("❌ ANTHROPIC_API_KEY não encontrada!")
+        print("   Configure: export ANTHROPIC_API_KEY='sk-ant-...'")
         sys.exit(1)
 
     # Fluxo principal

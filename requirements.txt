@@ -1,24 +1,25 @@
 # RAG + RAGAS — Dependências
 
-# LLM e Embeddings
-openai>=1.0.0
+# LLM Anthropic
+anthropic>=0.25.0
+langchain-anthropic>=0.1.0
+
+# Embeddings (gratuito, roda localmente)
+sentence-transformers>=3.0.0
 
 # Framework RAG
 langchain>=0.2.0
-langchain-openai>=0.1.0
 langchain-community>=0.2.0
 
 # Vector Store (local, sem servidor)
 chromadb>=0.5.0
-faiss-cpu>=1.8.0          # alternativa ao chromadb
 
 # Leitura de documentos
 pypdf>=4.0.0
-unstructured>=0.14.0      # para PDFs mais complexos
 
 # Avaliação RAG
 ragas>=0.1.0
-datasets>=2.20.0          # HuggingFace Datasets (usado pelo RAGAS)
+datasets>=2.20.0
 
 # Utilitários
 pandas>=2.0.0

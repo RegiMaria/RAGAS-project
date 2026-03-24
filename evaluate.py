@@ -187,8 +187,8 @@ def save_results(df_scores: pd.DataFrame):
 # ─────────────────────────────────────────────
 if __name__ == "__main__":
     # Verifica API key
-    if not os.getenv("OPENAI_API_KEY"):
-        print("❌ OPENAI_API_KEY não encontrada!")
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        print("❌ ANTHROPIC_API_KEY não encontrada!")
         sys.exit(1)
 
     # 1. Carrega golden dataset
