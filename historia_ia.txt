@@ -1,0 +1,27 @@
+História da Inteligência Artificial
+
+A inteligência artificial (IA) é um campo da ciência da computação dedicado a criar sistemas capazes de realizar tarefas que normalmente exigiriam inteligência humana.
+
+Origens (1950s)
+O termo "inteligência artificial" foi cunhado por John McCarthy em 1956, durante a Conferência de Dartmouth, considerada o marco fundador da área. Alan Turing, em 1950, propôs o famoso "Teste de Turing" como critério para avaliar se uma máquina pode exibir comportamento inteligente equivalente ao humano.
+
+Inverno da IA (1970s–1980s)
+Após promessas exageradas nas décadas de 1950 e 1960, o campo enfrentou dois períodos de desinvestimento chamados de "Invernos da IA". O primeiro ocorreu entre 1974 e 1980, o segundo entre 1987 e 1993. Nesses períodos, financiamentos foram cortados devido à falta de progresso real.
+
+Machine Learning (1990s–2000s)
+Com o aumento da capacidade computacional e a disponibilidade de dados, algoritmos de aprendizado de máquina ganharam força. Redes neurais artificiais, baseadas no funcionamento do cérebro humano, foram revisitadas com novas arquiteturas.
+
+Deep Learning e a Era Moderna (2010s)
+Em 2012, a rede neural AlexNet venceu a competição ImageNet com uma margem impressionante, inaugurando a era do deep learning. Modelos como GPT (Generative Pre-trained Transformer), desenvolvido pela OpenAI, revolucionaram o processamento de linguagem natural.
+
+GPT e Modelos de Linguagem
+O GPT-3, lançado em 2020, possui 175 bilhões de parâmetros e foi um marco em geração de texto. O ChatGPT, lançado em novembro de 2022, atingiu 1 milhão de usuários em apenas 5 dias, tornando-se o produto de crescimento mais rápido da história.
+
+Aplicações Atuais
+A IA é aplicada hoje em: diagnóstico médico, veículos autônomos, reconhecimento de voz e imagem, tradução automática, sistemas de recomendação (Netflix, Spotify), e assistentes virtuais como Siri, Alexa e Google Assistant.
+
+Desafios Éticos
+Entre os principais desafios éticos estão: viés algorítmico, privacidade de dados, substituição de empregos, e o alinhamento de sistemas de IA com valores humanos. Organizações como o Future of Life Institute e a Anthropic trabalham em segurança de IA.
+
+Brasil e IA
+O Brasil aprovou em 2024 um marco regulatório para inteligência artificial, tornando-se um dos primeiros países da América Latina a regulamentar a área. Centros de pesquisa como o IMPA e universidades como USP e UNICAMP possuem grupos ativos de pesquisa em IA.
