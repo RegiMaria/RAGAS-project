@@ -27,10 +27,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ─────────────────────────────────────────────
-# Imports RAGAS
+# Imports RAGAS (API 0.4.x)
 # ─────────────────────────────────────────────
-from ragas.testset.generator import TestsetGenerator
-from ragas.testset.evolutions import simple, reasoning, multi_context
+from ragas.testset import TestsetGenerator
+from ragas.llms import LangchainLLMWrapper
+from ragas.embeddings import LangchainEmbeddingsWrapper
 from langchain_anthropic import ChatAnthropic
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
@@ -45,13 +46,6 @@ OUTPUT_FILE = OUTPUT_DIR / "golden_dataset.csv"
 
 # Quantas perguntas gerar no total
 TEST_SIZE = 10
-
-# Distribuição dos tipos de perguntas (deve somar 1.0)
-DISTRIBUTIONS = {
-    simple: 0.5,           # 50% perguntas simples e diretas
-    reasoning: 0.3,        # 30% perguntas que exigem raciocínio
-    multi_context: 0.2,    # 20% perguntas que cruzam múltiplos trechos
-}
 
 
 # ─────────────────────────────────────────────
@@ -75,35 +69,27 @@ def generate_golden_dataset(docs) -> pd.DataFrame:
     """
     Usa o TestsetGenerator do RAGAS para gerar perguntas e ground truth
     automaticamente a partir dos documentos fornecidos.
-    
+
     O RAGAS usa:
-      - generator_llm  → para gerar as perguntas
-      - critic_llm     → para filtrar/melhorar as perguntas geradas
-      - embeddings     → para entender similaridade semântica entre chunks
+      - llm        → para gerar as perguntas (wrapped com LangchainLLMWrapper)
+      - embeddings → para entender similaridade semântica entre chunks
     """
     print("🧪 Iniciando geração do Golden Dataset com RAGAS...")
-    print(f"   Tamanho alvo: {TEST_SIZE} perguntas")
-    print(f"   Distribuição: simple={DISTRIBUTIONS[simple]}, "
-          f"reasoning={DISTRIBUTIONS[reasoning]}, "
-          f"multi_context={DISTRIBUTIONS[multi_context]}\n")
+    print(f"   Tamanho alvo: {TEST_SIZE} perguntas\n")
 
-    # LLMs usados pelo RAGAS internamente
-    generator_llm = ChatAnthropic(model="claude-haiku-4-5-20251001", temperature=0.3)
-    critic_llm = ChatAnthropic(model="claude-sonnet-4-6", temperature=0)  # modelo mais forte para crítica
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    # LLM e embeddings wrapped para a API do RAGAS 0.4.x
+    llm = LangchainLLMWrapper(ChatAnthropic(model="claude-haiku-4-5-20251001", temperature=0.3))
+    embeddings = LangchainEmbeddingsWrapper(
+        HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    )
 
     # Cria o gerador
-    generator = TestsetGenerator.from_langchain(
-        generator_llm=generator_llm,
-        critic_llm=critic_llm,
-        embeddings=embeddings,
-    )
+    generator = TestsetGenerator(llm=llm, embedding_model=embeddings)
 
     # Gera o testset
     testset = generator.generate_with_langchain_docs(
         documents=docs,
-        test_size=TEST_SIZE,
-        distributions=DISTRIBUTIONS,
+        testset_size=TEST_SIZE,
         with_debugging_logs=False,  # mude para True para ver logs detalhados
     )
 

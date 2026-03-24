@@ -34,7 +34,7 @@ from datasets import Dataset
 
 # Métricas RAGAS
 from ragas import evaluate
-from ragas.metrics import (
+from ragas.metrics.collections import (
     faithfulness,
     answer_correctness,
     answer_relevancy,
