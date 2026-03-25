@@ -132,6 +132,11 @@ Para forçar a reconstrução do índice:
 rag = RAGPipeline()
 rag.build(force_rebuild=True)
 ```
+## Relatórios do Projeto
+
+- [Relatório Técnico](data/sample_docs/relatorio-tecnico.md) — bibliotecas, downgrade do RAGAS, configuração e resultados
+- [Interpretação dos Resultados](data/sample_docs/relatorio-interpretacao-resultados.md) — análise pergunta por pergunta, padrões diagnósticos e recomendações para produção
+
 ## Referências
 
 - HUYEN, Chip. *AI Engineering*. Sebastopol: O'Reilly Media, 2024.  
