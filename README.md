@@ -92,13 +92,18 @@ jupyter notebook notebooks/walkthrough.ipynb
 ```
 
 ## Modelos Utilizados
+```
+| Papel | Modelo | Provedor | Motivo |
+|---|---|---|---|
+| Geração de respostas RAG | `claude-haiku-4-5` | Anthropic | Rápido e econômico |
+| Geração de perguntas (RAGAS) | `claude-haiku-4-5` | Anthropic | Volume alto de chamadas |
+| Crítica das perguntas (RAGAS) | `claude-sonnet-4-6` | Anthropic | Maior qualidade para filtragem |
+| Avaliação das métricas RAGAS | `claude-sonnet-4-6` | Anthropic | Julga faithfulness, correctness etc. |
+| Embeddings do VectorStore | `all-MiniLM-L6-v2` | HuggingFace (local) | Roda localmente, sem custo de API |
+| Embeddings internos do RAGAS | `text-embedding-ada-002` | OpenAI ⚠️ | Hardcoded no RAGAS 0.1.21 para calcular Answer Relevancy |
 
-| Papel | Modelo | Motivo |
-|---|---|---|
-| Geração de respostas RAG | `claude-haiku-4-5` | Rápido e econômico |
-| Geração de perguntas (RAGAS) | `claude-haiku-4-5` | Volume alto de chamadas |
-| Crítica das perguntas (RAGAS) | `claude-sonnet-4-6` | Maior qualidade para filtragem |
-| Embeddings | `all-MiniLM-L6-v2` | Roda localmente, sem custo de API |
+> **Nota sobre a OpenAI:** o RAGAS 0.1.21 chama `OpenAIEmbeddings` internamente ao calcular métricas, independente da configuração. É necessário ter `OPENAI_API_KEY` no `.env`. O custo por execução completa é inferior a **$0,01**.
+```
 
 ## Métricas RAGAS
 

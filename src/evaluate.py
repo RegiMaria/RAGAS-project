@@ -132,10 +132,14 @@ def print_summary(df_scores):
         bar = "█" * int(mean_val * 20)
         print(f"  {col:<25} {mean_val:.3f}  {bar}")
 
+    # detecta o nome real da coluna de pergunta (varia por versão do RAGAS)
+    q_col = next((c for c in ["question", "user_input"] if c in df_scores.columns), None)
+
     print("\n\n📋 SCORES POR PERGUNTA:")
     print("-" * 70)
     for i, row in df_scores.iterrows():
-        print(f"\n[{i+1}] ❓ {row['question'][:65]}...")
+        q = str(row[q_col])[:65] if q_col else "—"
+        print(f"\n[{i+1}] ❓ {q}...")
         for col in available:
             val  = row[col]
             flag = "✅" if val >= 0.7 else ("⚠️ " if val >= 0.4 else "❌")
@@ -149,7 +153,8 @@ def print_summary(df_scores):
         if len(problematic) > 0:
             print("\n\n⚠️  ATENÇÃO — LLM usando conhecimento próprio (não o contexto):")
             for _, row in problematic.iterrows():
-                print(f"   → {row['question'][:70]}...")
+                q = str(row[q_col])[:70] if q_col else "—"
+                print(f"   → {q}...")
 
 
 def save_results(df_scores):
