@@ -141,7 +141,10 @@
     <div class="logo">RAGAS-PROJECT</div>
     <h1>Resultados da <span>Avaliação</span></h1>
   </div>
-  <div class="header-note">Arraste o<br>evaluation_scores.csv</div>
+  <div class="header-note" style="text-align:right;">
+    Arraste o<br>evaluation_scores.csv<br>
+    <a href="guia_projeto.html" style="color:var(--accent2);font-size:11px;text-decoration:none;margin-top:6px;display:inline-block;">📖 Guia do projeto →</a>
+  </div>
 </div>
 
 <div id="app">
@@ -151,6 +154,7 @@
     </div>
     <div class="drop-title">Solte o arquivo aqui</div>
     <div class="drop-sub">Arraste o <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;font-size:11px;">evaluation_scores.csv</code> gerado pelo evaluate.py</div>
+    <div id="autoload-msg" style="font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-bottom:12px;display:none;">⟳ carregando dados do repositório...</div>
     <button class="btn" onclick="document.getElementById('file-input').click()">Escolher arquivo</button>
     <button class="btn btn-outline" onclick="loadDemo()">Ver demo</button>
     <input type="file" id="file-input" accept=".csv">
@@ -436,6 +440,29 @@ const dz = document.getElementById('drop-zone');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
 dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f && f.name.endsWith('.csv')) handleFile(f); });
+
+// ── Autoload do repositório ──────────────────────────────────
+async function tryAutoload() {
+  const candidates = [
+    'outputs/evaluation_scores.csv',
+    'evaluation_scores.csv',
+  ];
+  const msg = document.getElementById('autoload-msg');
+  for (const path of candidates) {
+    try {
+      msg.style.display = 'block';
+      const res = await fetch(path);
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (!text.trim() || !text.includes(',')) continue;
+      const rows = parseCSV(text);
+      if (rows.length > 0) { render(rows, path.split('/').pop()); return; }
+    } catch(e) { continue; }
+  }
+  msg.style.display = 'none';
+}
+
+window.addEventListener('DOMContentLoaded', tryAutoload);
 
 // ── Demo ─────────────────────────────────────────────────────
 function loadDemo() {
