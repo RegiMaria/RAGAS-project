@@ -1,26 +1,27 @@
-# RAG + RAGAS — Dependências
+# ── LangChain ecosystem (versões pinadas e compatíveis entre si) ──────────
+langchain==1.2.13
+langchain-core==1.2.22
+langchain-community==0.4.1
+langchain-text-splitters==1.1.1
+langchain-anthropic==1.4.0
+langchain-classic==1.0.3
+langchain-huggingface==1.2.1
 
-# LLM e Embeddings
-openai>=1.0.0
+# ── Embeddings locais (sem custo de API) ──────────────────────────────────
+sentence-transformers==3.4.1
 
-# Framework RAG
-langchain>=0.2.0
-langchain-openai>=0.1.0
-langchain-community>=0.2.0
+# ── Vector Store ──────────────────────────────────────────────────────────
+chromadb==1.5.5
 
-# Vector Store (local, sem servidor)
-chromadb>=0.5.0
-faiss-cpu>=1.8.0          # alternativa ao chromadb
+# ── Avaliação RAGAS ───────────────────────────────────────────────────────
+ragas==0.4.3
+datasets==4.8.4
 
-# Leitura de documentos
-pypdf>=4.0.0
-unstructured>=0.14.0      # para PDFs mais complexos
+# ── Dependências diretas do RAGAS (pinadas para evitar downgrade) ─────────
+openai==2.29.0
+langchain-openai==1.1.12
 
-# Avaliação RAG
-ragas>=0.1.0
-datasets>=2.20.0          # HuggingFace Datasets (usado pelo RAGAS)
-
-# Utilitários
-pandas>=2.0.0
-python-dotenv>=1.0.0
-tqdm>=4.0.0
+# ── Dados e utilitários ───────────────────────────────────────────────────
+pandas==3.0.1
+python-dotenv==1.2.2
+pypdf==6.9.2

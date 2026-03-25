@@ -18,13 +18,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_anthropic import ChatAnthropic
 from langchain_community.vectorstores import Chroma
-from langchain.chains import RetrievalQA
-from langchain.schema import Document
+from langchain_classic.chains import RetrievalQA
+from langchain_core.documents import Document
 
-load_dotenv()  # carrega OPENAI_API_KEY do arquivo .env
+load_dotenv()  # carrega ANTHROPIC_API_KEY do arquivo .env
 
 
 # ─────────────────────────────────────────────
@@ -33,10 +34,10 @@ load_dotenv()  # carrega OPENAI_API_KEY do arquivo .env
 DOCS_DIR = Path(__file__).parent.parent / "data" / "sample_docs"
 CHROMA_DIR = Path(__file__).parent.parent / "data" / "chroma_db"
 
-CHUNK_SIZE = 500          # tamanho de cada chunk em caracteres
-CHUNK_OVERLAP = 50        # sobreposição entre chunks
-TOP_K_RETRIEVAL = 3       # quantos chunks recuperar por pergunta
-LLM_MODEL = "gpt-4o-mini" # modelo OpenAI a usar
+CHUNK_SIZE = 500                      # tamanho de cada chunk em caracteres
+CHUNK_OVERLAP = 50                    # sobreposição entre chunks
+TOP_K_RETRIEVAL = 3                   # quantos chunks recuperar por pergunta
+LLM_MODEL = "claude-haiku-4-5-20251001"  # modelo Anthropic a usar
 
 
 # ─────────────────────────────────────────────
@@ -55,8 +56,11 @@ class RAGPipeline:
     """
 
     def __init__(self):
-        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-        self.llm = ChatOpenAI(model=LLM_MODEL, temperature=0)
+        # Embeddings gratuitos via HuggingFace (roda localmente, sem API key)
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+        self.llm = ChatAnthropic(model=LLM_MODEL, temperature=0)
         self.vectorstore = None
         self.retriever = None
         self.qa_chain = None
