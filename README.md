@@ -1,61 +1,167 @@
-
 # RAG + RAGAS — Avaliação com Golden Dataset
 
-Projeto exemplo para estudar geração de golden dataset (evaluation set) com RAGAS em uma aplicação RAG real.
+Projeto exemplo para estudar geração de golden dataset (evaluation set) com RAGAS em uma aplicação RAG real, usando modelos **Claude da Anthropic**.
 
-## 📁 Estrutura do Projeto
+## Como funciona
 
 ```
-rag_ragas_boilerplate/
-│
-├── README.md
-├── requirements.txt
+Documentos (data/sample_docs/)
+        ↓
+  RAG Pipeline (src/rag_pipeline.py)
+  • Divide em chunks (500 chars, overlap 50)
+  • Gera embeddings locais (HuggingFace, sem custo de API)
+  • Armazena no ChromaDB (local, persistido)
+  • Responde perguntas via Claude Haiku
+        ↓
+  Golden Dataset (src/golden_dataset.py)
+  • RAGAS gera perguntas + ground truth automaticamente
+  • Tipos: simples, raciocínio, multi-contexto
+  • Salvo em outputs/golden_dataset.csv
+        ↓
+  Avaliação (src/evaluate.py)
+  • Roda o RAG em cada pergunta do dataset
+  • Calcula 5 métricas RAGAS
+  • Salvo em outputs/evaluation_scores.csv
+```
+
+## Estrutura do Projeto
+
+```
+RAGAS-Project/
+├── src/
+│   ├── rag_pipeline.py       # Pipeline RAG completo
+│   ├── golden_dataset.py     # Geração do golden dataset com RAGAS
+│   └── evaluate.py           # Avaliação com métricas RAGAS
 │
 ├── data/
-│   └── sample_docs/          # Coloque seus PDFs/TXTs aqui
-│       └── exemplo.txt
+│   └── sample_docs/          # Coloque seus .txt ou .pdf aqui
+│       └── historia_ia.txt   # Documento de exemplo incluído
 │
-├── src/
-│   ├── rag_pipeline.py       # Pipeline RAG completo (chunking → embedding → retrieval → LLM)
-│   ├── golden_dataset.py     # Geração automática do golden dataset com RAGAS
-│   └── evaluate.py           # Avaliação do sistema RAG com métricas RAGAS
+├── outputs/                  # Criado automaticamente ao rodar os scripts
+│   ├── golden_dataset.csv    # Perguntas + ground truth gerados
+│   └── evaluation_scores.csv # Scores por pergunta
 │
-├── outputs/
-│   ├── golden_dataset.csv    # Dataset gerado (questions + ground_truth)
-│   └── evaluation_scores.csv # Scores das métricas (faithfulness, correctness, etc.)
+├── notebooks/
+│   └── walkthrough.ipynb     # Guia interativo passo a passo
 │
-└── notebooks/
-    └── walkthrough.ipynb     # Notebook interativo para explorar passo a passo
+├── requirements.txt
+└── .env                      # Chave de API (não commitado)
 ```
 
-## Início Rápido
+## Pré-requisitos
+
+- Python 3.10+
+- Conta na [Anthropic](https://console.anthropic.com/) com créditos disponíveis
+
+## Instalação
 
 ```bash
-# 1. Instalar dependências
+# 1. Clonar o repositório
+git clone https://github.com/RegiMaria/RAGAS-project.git
+cd RAGAS-Project
+
+# 2. Criar e ativar ambiente virtual
+python -m venv venv
+source venv/bin/activate      # Linux/Mac
+# venv\Scripts\activate       # Windows
+
+# 3. Instalar dependências
 pip install -r requirements.txt
 
-# 2. Configurar sua chave OpenAI
-export OPENAI_API_KEY="sk-..."
+# 4. Configurar a chave da API
+cp .env.example .env
+# Editar .env e adicionar: ANTHROPIC_API_KEY="sk-ant-..."
+```
 
-# 3. Gerar o Golden Dataset a partir dos seus documentos
+## Uso
+
+```bash
+# Passo 1 (opcional): testar o pipeline RAG diretamente
+python src/rag_pipeline.py
+
+# Passo 2: gerar o golden dataset a partir dos seus documentos
 python src/golden_dataset.py
 
-# 4. Rodar a avaliação RAG com o dataset gerado
+# Passo 3: avaliar o sistema RAG
 python src/evaluate.py
 ```
 
-## Conceitos Estudados
+Ou explore o fluxo completo no notebook interativo:
+```bash
+jupyter notebook notebooks/walkthrough.ipynb
+```
 
-| Etapa | Script | O que faz |
+## Modelos Utilizados
+```
+| Papel | Modelo | Provedor | Motivo |
+|---|---|---|---|
+| Geração de respostas RAG | `claude-haiku-4-5` | Anthropic | Rápido e econômico |
+| Geração de perguntas (RAGAS) | `claude-haiku-4-5` | Anthropic | Volume alto de chamadas |
+| Crítica das perguntas (RAGAS) | `claude-sonnet-4-6` | Anthropic | Maior qualidade para filtragem |
+| Avaliação das métricas RAGAS | `claude-sonnet-4-6` | Anthropic | Julga faithfulness, correctness etc. |
+| Embeddings do VectorStore | `all-MiniLM-L6-v2` | HuggingFace (local) | Roda localmente, sem custo de API |
+| Embeddings internos do RAGAS | `text-embedding-ada-002` | OpenAI ⚠️ | Hardcoded no RAGAS 0.1.21 para calcular Answer Relevancy |
+
+> **Nota sobre a OpenAI:** o RAGAS 0.1.21 chama `OpenAIEmbeddings` internamente ao calcular métricas, independente da configuração. É necessário ter `OPENAI_API_KEY` no `.env`. O custo por execução completa é inferior a **$0,01**.
+```
+
+## Métricas RAGAS
+
+| Métrica | Compara | Mede |
 |---|---|---|
-| **RAG Pipeline** | `rag_pipeline.py` | Chunking → Embeddings → VectorStore → Retrieval → LLM |
-| **Golden Dataset** | `golden_dataset.py` | RAGAS gera Questions + Ground Truth automaticamente |
-| **Avaliação** | `evaluate.py` | Calcula Faithfulness, Answer Correctness e outras métricas |
+| **Faithfulness** | Resposta ↔ Contexto | O LLM usou o contexto ou inventou? |
+| **Answer Correctness** | Resposta ↔ Ground Truth | A resposta está correta? |
+| **Answer Relevance** | Resposta ↔ Pergunta | A resposta é relevante à pergunta? |
+| **Context Precision** | Contexto ↔ Pergunta+GT | O contexto recuperado é preciso? |
+| **Context Recall** | Contexto ↔ Ground Truth | O contexto necessário foi recuperado? |
 
-## Métricas Avaliadas
+### Interpretando os Scores
 
-- **Faithfulness** — O LLM usou o contexto recuperado? (Answer ↔ Context)
-- **Answer Correctness** — A resposta está certa? (Answer ↔ Ground Truth)
-- **Answer Relevance** — A resposta é relevante à pergunta? (Answer ↔ Question)
-- **Context Precision** — O contexto recuperado é preciso?
-- **Context Recall** — O quanto do contexto necessário foi recuperado?
+- **>= 0.7** — Bom
+- **0.4 a 0.7** — Atenção
+- **< 0.4** — Problema
+
+O `evaluate.py` detecta automaticamente casos onde `faithfulness < 0.5` e `answer_correctness > 0.6` — sinal de que o LLM está usando conhecimento próprio em vez do contexto recuperado (alucinação fundamentada).
+
+## Adicionando seus próprios documentos
+
+Coloque arquivos `.txt` ou `.pdf` em `data/sample_docs/` e rode novamente os scripts. O ChromaDB é reconstruído automaticamente se não existir.
+
+Para forçar a reconstrução do índice:
+```python
+rag = RAGPipeline()
+rag.build(force_rebuild=True)
+```
+## Relatórios do Projeto
+
+- [Relatório Técnico](data/sample_docs/relatorio-tecnico.md) — bibliotecas, downgrade do RAGAS, configuração e resultados
+- [Interpretação dos Resultados](data/sample_docs/relatorio-interpretacao-resultados.md) — análise pergunta por pergunta, padrões diagnósticos e recomendações para produção
+
+## Referências
+
+- HUYEN, Chip. *AI Engineering*. Sebastopol: O'Reilly Media, 2024.  
+  [Acessar conteúdo](https://learning.oreilly.com/library/view/ai-engineering/9781098166298/ch06.html)
+
+- RAGAS. *Faithfulness Metric*.  
+  [Documentação](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/)
+
+- RAGAS. *Answer Relevance Metric*.  
+  [Documentação](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/answer_relevance/)
+
+- RAGAS. *Context Recall Metric*.  
+  [Documentação](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/)
+
+- RAGAS. *Context Precision Metric*.  
+  [Documentação](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_precision/)
+
+- DHANAKOTTI, Karthikeyan. *RAGAS for RAG in LLMs: A Comprehensive Guide to Evaluation Metrics*. Medium, 2024.  
+  [Ler artigo](https://dkaarthick.medium.com/ragas-for-rag-in-llms-a-comprehensive-guide-to-evaluation-metrics-3aca142d6e38)
+
+- GARSON, Jessica. *Evaluating your Elasticsearch LLM Applications with Ragas*. Elastic, 2025.  
+  [Ler artigo](https://www.elastic.co/search-labs/blog/elasticsearch-ragas-llm-app-evaluation)
+
+- ES, Shahul et al. *Ragas: Automated Evaluation of Retrieval Augmented Generation*. EACL, 2024.  
+  [Acessar paper](https://aclanthology.org/2024.eacl-demo.16/)
+
+- SHELTON, Robert. *Get Better RAG Responses with Ragas*. Redis Blog, 2024.  
+  [Ler artigo](https://redis.io/blog/get-better-rag-responses-with-ragas/)

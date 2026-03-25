@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RAG + RAGAS — Guia do Projeto</title>
+<title>RAGAS-Project — Guia do Projeto</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -369,7 +369,7 @@
       <span class="badge" style="background:var(--accent2)">RAGAS</span>
       <span class="badge" style="background:var(--accent3)">Golden Dataset</span>
     </div>
-    <h1>Boilerplate de Avaliação<br><span>RAG + RAGAS</span></h1>
+    <h1>RAGAS-PROJECT-EVAL-RAG<br><span>RAG + RAGAS</span></h1>
     <p class="subtitle">Gere datasets de avaliação automaticamente e meça a qualidade do seu sistema RAG</p>
   </div>
 </header>
@@ -507,6 +507,55 @@
         <span class="file-tag">gerado automaticamente</span>
       </div>
     </div>
+
+    <div class="file-card" style="border-color: rgba(6,182,212,0.4);">
+      <div class="file-header">
+        <span class="file-icon">🌐</span>
+        <div>
+          <div class="file-name">resultados.html</div>
+          <div class="file-path">raiz do projeto</div>
+        </div>
+      </div>
+      <div class="file-body">
+        <p class="file-desc">Visualizador interativo dos resultados. Arraste o CSV ou carrega automaticamente via GitHub Pages.</p>
+        <span class="file-tag">drag & drop</span>
+        <span class="file-tag">gráficos</span>
+        <span class="file-tag">GitHub Pages</span>
+      </div>
+    </div>
+
+    <div class="file-card" style="border-color: rgba(16,185,129,0.4);">
+      <div class="file-header">
+        <span class="file-icon">📝</span>
+        <div>
+          <div class="file-name">relatorio.md</div>
+          <div class="file-path">data/sample_docs/</div>
+        </div>
+      </div>
+      <div class="file-body">
+        <p class="file-desc">Relatório técnico: bibliotecas, downgrade do RAGAS, configuração e resultados obtidos.</p>
+        <span class="file-tag">bibliotecas</span>
+        <span class="file-tag">downgrade</span>
+        <span class="file-tag">OpenAI</span>
+      </div>
+    </div>
+
+    <div class="file-card" style="border-color: rgba(16,185,129,0.4);">
+      <div class="file-header">
+        <span class="file-icon">📝</span>
+        <div>
+          <div class="file-name">relatorio-interpretacao-resultados.md</div>
+          <div class="file-path">data/sample_docs/</div>
+        </div>
+      </div>
+      <div class="file-body">
+        <p class="file-desc">Interpretação didática dos scores, padrões diagnósticos e recomendações de tamanho de dataset segundo Chip Huyen.</p>
+        <span class="file-tag">interpretação</span>
+        <span class="file-tag">diagnóstico</span>
+        <span class="file-tag">Chip Huyen</span>
+      </div>
+    </div>
+
   </div>
 
   <hr>
@@ -544,14 +593,12 @@
   </div>
 
   <div class="insight">
-    <div class="insight-icon">💡</div>
+    <div class="insight-icon">⚠️</div>
     <div>
-      <div class="insight-title">Insight: Faithfulness baixa + Correctness alta</div>
+      <div class="insight-title">Duas APIs são necessárias neste projeto</div>
       <div class="insight-text">
-        Se o LLM responde <strong>certo</strong> mas com <strong>faithfulness baixa</strong>, significa que ele usou
-        seu próprio conhecimento interno — não o contexto recuperado. Em aplicações que exigem
-        <strong>rastreabilidade e confiabilidade</strong> (como sistemas corporativos ou médicos),
-        isso é um problema: você não pode auditar de onde veio a informação.
+        <strong>Anthropic (Claude)</strong> é usado para tudo: gerar respostas no pipeline RAG, gerar as perguntas do golden dataset e avaliar as métricas de qualidade.<br><br>
+        <strong>OpenAI</strong> é usado <em>involuntariamente</em> — o RAGAS 0.1.21 chama <code style="background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;">OpenAIEmbeddings</code> internamente ao calcular a métrica <strong>Answer Relevancy</strong>. Esse comportamento está hardcoded na biblioteca e não é configurável. O custo por execução é inferior a <strong>$0,01</strong>.
       </div>
     </div>
   </div>
@@ -574,9 +621,11 @@
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-content">
-        <div class="step-title">Configurar chave da OpenAI</div>
-        <div class="step-cmd">export OPENAI_API_KEY="sk-..."</div>
-        <div class="step-note">Ou crie um arquivo .env com OPENAI_API_KEY=sk-...</div>
+        <div class="step-title">Configurar as chaves de API</div>
+        <div class="step-cmd">cp .env.example .env</div>
+        <div class="step-note" style="margin-top:8px;">Edite o <code style="background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;font-size:11px;">.env</code> e preencha as duas chaves:</div>
+        <div class="step-cmd" style="margin-top:6px;">ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# usado internamente pelo RAGAS</div>
       </div>
     </div>
     <div class="step">

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAGAS-Project — Resultados</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #16161f;
+    --border: #1e1e2e;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
+
+  .header {
+    padding: 40px 48px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .logo { font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--accent); letter-spacing: 2px; margin-bottom: 6px; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  h1 span { color: var(--accent2); }
+  .header-note { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-align: right; }
+
+  #app { max-width: 1200px; margin: 0 auto; padding: 48px; }
+
+  .drop-zone {
+    border: 2px dashed var(--border); border-radius: 16px; padding: 72px 40px;
+    text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    background: var(--surface);
+  }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: rgba(124,58,237,0.06); }
+  .drop-icon { width: 56px; height: 56px; margin: 0 auto 20px; background: rgba(124,58,237,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .drop-icon svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 2; }
+  .drop-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .drop-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+  .btn { display: inline-block; padding: 10px 24px; background: var(--accent); color: white; border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); margin-left: 10px; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+  #file-input { display: none; }
+
+  #results { display: none; }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 40px; }
+  @media (max-width: 900px) { .cards-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 16px; position: relative; overflow: hidden; }
+  .metric-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+  .mc-faith::after  { background: var(--accent); }
+  .mc-correct::after{ background: var(--accent3); }
+  .mc-rel::after    { background: var(--accent2); }
+  .mc-prec::after   { background: var(--warn); }
+  .mc-recall::after { background: var(--danger); }
+  .mc-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .mc-value { font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1; margin-bottom: 8px; }
+  .mc-bar-bg { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .mc-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+  .mc-faith .mc-bar-fill  { background: var(--accent); }
+  .mc-correct .mc-bar-fill{ background: var(--accent3); }
+  .mc-rel .mc-bar-fill    { background: var(--accent2); }
+  .mc-prec .mc-bar-fill   { background: var(--warn); }
+  .mc-recall .mc-bar-fill { background: var(--danger); }
+
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+  @media (max-width: 800px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; font-family: 'JetBrains Mono', monospace; }
+  .chart-wrap { position: relative; width: 100%; }
+
+  .insight-box { background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 16px 20px; margin-bottom: 40px; display: none; align-items: flex-start; gap: 14px; }
+  .insight-box.visible { display: flex; }
+  .insight-dot { width: 8px; height: 8px; background: var(--warn); border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+  .insight-title { font-size: 13px; font-weight: 700; color: var(--warn); margin-bottom: 4px; }
+  .insight-text  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  .table-section { margin-bottom: 40px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { padding: 12px 16px; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; }
+
+  /* ── Linha clicável ── */
+  .tr-main { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+  .tr-main:hover { background: var(--surface2); }
+  .tr-main td { padding: 14px 16px; vertical-align: middle; }
+  .tr-detail { display: none; border-bottom: 1px solid var(--border); background: rgba(124,58,237,0.04); }
+  .tr-detail.open { display: table-row; }
+  .tr-detail td { padding: 0; }
+
+  .detail-box { padding: 16px 20px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .detail-box { grid-template-columns: 1fr; } }
+
+  .detail-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .detail-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .detail-text { font-size: 12px; color: var(--muted); line-height: 1.6; max-height: 120px; overflow-y: auto; }
+  .detail-text::-webkit-scrollbar { width: 4px; }
+  .detail-text::-webkit-scrollbar-track { background: transparent; }
+  .detail-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .chevron { display: inline-block; transition: transform 0.2s; margin-left: 6px; color: var(--muted); font-size: 11px; }
+  .tr-main.expanded .chevron { transform: rotate(180deg); }
+
+  .td-question { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+  .diag-row { background: rgba(245,158,11,0.04) !important; }
+
+  .score-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; }
+  .pill-high   { background: rgba(16,185,129,0.12); color: #34d399; }
+  .pill-medium { background: rgba(245,158,11,0.12); color: #fbbf24; }
+  .pill-low    { background: rgba(239,68,68,0.12);  color: #f87171; }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .pill-high .pill-dot   { background: #34d399; }
+  .pill-medium .pill-dot { background: #fbbf24; }
+  .pill-low .pill-dot    { background: #f87171; }
+
+  .file-info { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 32px; display: flex; align-items: center; gap: 16px; }
+  .file-badge { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.25); color: #a78bfa; padding: 3px 10px; border-radius: 4px; }
+  .hint { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">RAGAS-PROJECT</div>
+    <h1>Resultados da <span>Avaliação</span></h1>
+  </div>
+  <div class="header-note" style="text-align:right;">
+    Arraste o<br>evaluation_scores.csv<br>
+    <a href="guia_projeto.html" style="color:var(--accent2);font-size:11px;text-decoration:none;margin-top:6px;display:inline-block;">📖 Guia do projeto →</a>
+  </div>
+</div>
+
+<div id="app">
+  <div class="drop-zone" id="drop-zone">
+    <div class="drop-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <div class="drop-title">Solte o arquivo aqui</div>
+    <div class="drop-sub">Arraste o <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;font-size:11px;">evaluation_scores.csv</code> gerado pelo evaluate.py</div>
+    <div id="autoload-msg" style="font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-bottom:12px;display:none;">⟳ carregando dados do repositório...</div>
+    <button class="btn" onclick="document.getElementById('file-input').click()">Escolher arquivo</button>
+    <button class="btn btn-outline" onclick="loadDemo()">Ver demo</button>
+    <input type="file" id="file-input" accept=".csv">
+  </div>
+
+  <div id="results">
+    <div class="file-info">
+      <span class="file-badge" id="file-name-badge">—</span>
+      <span id="file-meta">—</span>
+    </div>
+
+    <div class="cards-grid" id="cards-grid"></div>
+
+    <div class="insight-box" id="insight-box">
+      <div class="insight-dot"></div>
+      <div>
+        <div class="insight-title">Atenção — LLM usando conhecimento próprio</div>
+        <div class="insight-text" id="insight-text"></div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Scores médios por métrica</div>
+        <div class="chart-wrap" style="height:220px;"><canvas id="chart-radar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Faithfulness × Answer Correctness</div>
+        <div class="chart-wrap" style="height:220px;"><canvas id="chart-scatter"></canvas></div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Scores por pergunta</div>
+          <div class="hint">↓ clique em qualquer linha para ver detalhes</div>
+        </div>
+        <button class="btn btn-outline" onclick="resetView()" style="font-size:11px;padding:6px 14px;">↩ Carregar outro arquivo</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Mapeamento de colunas RAGAS → display ──────────────────
+// Suporta tanto o formato antigo quanto o novo do RAGAS 0.1.21
+const COL = {
+  question: ['user_input', 'question', 'Question'],
+  answer:   ['response', 'answer'],
+  contexts: ['retrieved_contexts', 'contexts'],
+  ground_truth: ['reference', 'ground_truth'],
+};
+
+function findCol(row, candidates) {
+  for (const c of candidates) if (row[c] !== undefined) return row[c];
+  return null;
+}
+
+const METRIC_COLORS = {
+  faithfulness:       { label: 'Faithfulness',      cls: 'mc-faith',   hex: '#7c3aed' },
+  answer_correctness: { label: 'Correctness',        cls: 'mc-correct', hex: '#10b981' },
+  answer_relevancy:   { label: 'Relevance',          cls: 'mc-rel',     hex: '#06b6d4' },
+  context_precision:  { label: 'Precision',          cls: 'mc-prec',    hex: '#f59e0b' },
+  context_recall:     { label: 'Recall',             cls: 'mc-recall',  hex: '#ef4444' },
+};
+const METRIC_KEYS = Object.keys(METRIC_COLORS);
+
+let radarChart = null, scatterChart = null;
+
+// ── CSV parser ──────────────────────────────────────────────
+function parseCSV(text) {
+  // Parser RFC 4180: lida com aspas duplas escapadas ("") e campos com virgulas/quebras
+  const fields = [];
+  let cur = '', inQ = false, i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"' && text[i+1] === '"') { cur += '"'; i += 2; continue; }
+      else if (ch === '"') { inQ = false; i++; continue; }
+      else { cur += ch; i++; }
+    } else {
+      if (ch === '"') { inQ = true; i++; }
+      else if (ch === ',') { fields.push(cur); cur = ''; i++; }
+      else if (ch === '\r' && text[i+1] === '\n') { fields.push(cur); fields.push('\n'); cur = ''; i += 2; }
+      else if (ch === '\n') { fields.push(cur); fields.push('\n'); cur = ''; i++; }
+      else { cur += ch; i++; }
+    }
+  }
+  fields.push(cur);
+
+  // reconstroi linhas
+  const rows = [[]];
+  for (const f of fields) {
+    if (f === '\n') rows.push([]);
+    else rows[rows.length-1].push(f);
+  }
+
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1).filter(r => r.length > 1 && r.some(v => v.trim())).map(vals => {
+    const row = {};
+    headers.forEach((h, idx) => {
+      const v = (vals[idx] || '').trim();
+      row[h] = (!isNaN(v) && v !== '') ? parseFloat(v) : v;
+    });
+    return row;
+  });
+}
+
+function pill(val) {
+  if (val === null || val === undefined || isNaN(val))
+    return '<span style="color:var(--muted);font-size:12px;">—</span>';
+  const cls = val >= 0.7 ? 'pill-high' : val >= 0.4 ? 'pill-medium' : 'pill-low';
+  return `<span class="score-pill ${cls}"><span class="pill-dot"></span>${val.toFixed(2)}</span>`;
+}
+
+// ── Toggle linha de detalhe ─────────────────────────────────
+function toggleDetail(idx) {
+  const mainRow   = document.getElementById(`tr-main-${idx}`);
+  const detailRow = document.getElementById(`tr-detail-${idx}`);
+  const isOpen = detailRow.classList.contains('open');
+  // fecha todos
+  document.querySelectorAll('.tr-detail.open').forEach(r => r.classList.remove('open'));
+  document.querySelectorAll('.tr-main.expanded').forEach(r => r.classList.remove('expanded'));
+  if (!isOpen) {
+    detailRow.classList.add('open');
+    mainRow.classList.add('expanded');
+  }
+}
+
+// ── Render ──────────────────────────────────────────────────
+function render(rows, filename) {
+  document.getElementById('drop-zone').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('file-name-badge').textContent = filename || 'evaluation_scores.csv';
+  document.getElementById('file-meta').textContent = `${rows.length} pergunta${rows.length !== 1 ? 's' : ''} avaliada${rows.length !== 1 ? 's' : ''}`;
+
+  // médias
+  const avgs = {};
+  METRIC_KEYS.forEach(k => {
+    const vals = rows.map(r => r[k]).filter(v => v !== undefined && !isNaN(v) && v !== '');
+    avgs[k] = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+  });
+
+  // ── Cards ───────────────────────────────────────────────
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
+  METRIC_KEYS.forEach(k => {
+    const m = METRIC_COLORS[k];
+    const v = avgs[k];
+    const pct = v !== null ? Math.round(v * 100) : 0;
+    const display = v !== null ? v.toFixed(2) : '—';
+    grid.innerHTML += `
+      <div class="metric-card ${m.cls}">
+        <div class="mc-label">${m.label}</div>
+        <div class="mc-value">${display}</div>
+        <div class="mc-bar-bg"><div class="mc-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  });
+
+  // ── Insight ─────────────────────────────────────────────
+  const problematic = rows.filter(r =>
+    !isNaN(r.faithfulness) && !isNaN(r.answer_correctness) &&
+    r.faithfulness < 0.5 && r.answer_correctness > 0.6
+  );
+  const insightBox = document.getElementById('insight-box');
+  if (problematic.length > 0) {
+    insightBox.classList.add('visible');
+    document.getElementById('insight-text').innerHTML =
+      `<strong>${problematic.length} pergunta${problematic.length>1?'s':''}</strong> com faithfulness baixa e correctness alta — o LLM respondeu certo mas <em>sem usar o contexto</em>. Risco de rastreabilidade.`;
+  }
+
+  // ── Radar ────────────────────────────────────────────────
+  if (radarChart) radarChart.destroy();
+  const radarKeys = METRIC_KEYS.filter(k => avgs[k] !== null);
+  radarChart = new Chart(document.getElementById('chart-radar').getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels: radarKeys.map(k => METRIC_COLORS[k].label),
+      datasets: [{ data: radarKeys.map(k => avgs[k]), backgroundColor: 'rgba(124,58,237,0.15)', borderColor: '#7c3aed', borderWidth: 2, pointBackgroundColor: '#7c3aed', pointRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { r: { min: 0, max: 1, ticks: { stepSize: 0.25, color: '#64748b', font: { size: 10 }, backdropColor: 'transparent' }, grid: { color: '#1e1e2e' }, pointLabels: { color: '#94a3b8', font: { size: 11 } }, angleLines: { color: '#1e1e2e' } } }
+    }
+  });
+
+  // ── Scatter ──────────────────────────────────────────────
+  if (scatterChart) scatterChart.destroy();
+  const normalPts = rows.filter(r => !isNaN(r.faithfulness) && !isNaN(r.answer_correctness) && !(r.faithfulness < 0.5 && r.answer_correctness > 0.6));
+  const warnPts   = rows.filter(r => !isNaN(r.faithfulness) && !isNaN(r.answer_correctness) &&  (r.faithfulness < 0.5 && r.answer_correctness > 0.6));
+  scatterChart = new Chart(document.getElementById('chart-scatter').getContext('2d'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label: 'Normal', data: normalPts.map(r => ({ x: r.faithfulness, y: r.answer_correctness })), backgroundColor: 'rgba(6,182,212,0.7)', pointRadius: 7 },
+        { label: 'Usou conhecimento próprio', data: warnPts.map(r => ({ x: r.faithfulness, y: r.answer_correctness })), backgroundColor: 'rgba(245,158,11,0.85)', pointRadius: 9 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: true, labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 10 } }, tooltip: { callbacks: { label: ctx => `faith: ${ctx.parsed.x.toFixed(2)} | correct: ${ctx.parsed.y.toFixed(2)}` } } },
+      scales: {
+        x: { min: -0.05, max: 1.05, title: { display: true, text: 'Faithfulness', color: '#64748b', font:{size:11} }, grid: { color: '#1e1e2e' }, ticks: { color: '#64748b', font:{size:10} } },
+        y: { min: -0.05, max: 1.05, title: { display: true, text: 'Answer Correctness', color: '#64748b', font:{size:11} }, grid: { color: '#1e1e2e' }, ticks: { color: '#64748b', font:{size:10} } }
+      }
+    }
+  });
+
+  // ── Tabela interativa ────────────────────────────────────
+  const availMetrics = METRIC_KEYS.filter(k => rows.some(r => !isNaN(r[k]) && r[k] !== ''));
+
+  document.getElementById('table-head').innerHTML = `<tr>
+    <th style="width:32px">#</th>
+    <th>Pergunta</th>
+    ${availMetrics.map(k=>`<th>${METRIC_COLORS[k].label}</th>`).join('')}
+  </tr>`;
+
+  document.getElementById('table-body').innerHTML = rows.map((r, i) => {
+    const q         = String(findCol(r, COL.question) || '—');
+    const answer    = String(findCol(r, COL.answer) || '—');
+    const groundT   = String(findCol(r, COL.ground_truth) || '—');
+    const ctxRaw    = String(findCol(r, COL.contexts) || '');
+    const isDiag    = !isNaN(r.faithfulness) && !isNaN(r.answer_correctness) && r.faithfulness < 0.5 && r.answer_correctness > 0.6;
+
+    // formata contextos (é uma string com lista Python)
+    const ctxClean = ctxRaw.replace(/^\[|\]$/g,'').split("', '").map(s => s.replace(/^'|'$/g,'')).join('\n\n---\n\n');
+
+    return `
+      <tr class="tr-main${isDiag?' diag-row':''}" id="tr-main-${i}" onclick="toggleDetail(${i})">
+        <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">${i+1}</td>
+        <td class="td-question" title="${q.replace(/"/g,'&quot;')}">${q.substring(0,75)}${q.length>75?'…':''} <span class="chevron">▾</span></td>
+        ${availMetrics.map(k => `<td>${pill(r[k])}</td>`).join('')}
+      </tr>
+      <tr class="tr-detail" id="tr-detail-${i}">
+        <td colspan="${availMetrics.length + 2}">
+          <div class="detail-box">
+            <div class="detail-block" style="grid-column: 1 / -1;">
+              <div class="detail-label">Pergunta completa</div>
+              <div class="detail-text">${q}</div>
+            </div>
+            <div class="detail-block">
+              <div class="detail-label">Resposta gerada pelo RAG</div>
+              <div class="detail-text">${answer}</div>
+            </div>
+            <div class="detail-block">
+              <div class="detail-label">Ground Truth (gabarito)</div>
+              <div class="detail-text">${groundT}</div>
+            </div>
+            <div class="detail-block" style="grid-column: 1 / -1;">
+              <div class="detail-label">Contextos recuperados</div>
+              <div class="detail-text" style="max-height:160px;">${ctxClean || '—'}</div>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function resetView() {
+  document.getElementById('drop-zone').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('insight-box').classList.remove('visible');
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+  if (scatterChart) { scatterChart.destroy(); scatterChart = null; }
+}
+
+// ── File handling ────────────────────────────────────────────
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => render(parseCSV(e.target.result), file.name);
+  reader.readAsText(file);
+}
+document.getElementById('file-input').addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f && f.name.endsWith('.csv')) handleFile(f); });
+
+// ── Autoload do repositório ──────────────────────────────────
+async function tryAutoload() {
+  const candidates = [
+    'outputs/evaluation_scores.csv',
+    'evaluation_scores.csv',
+  ];
+  const msg = document.getElementById('autoload-msg');
+  for (const path of candidates) {
+    try {
+      msg.style.display = 'block';
+      const res = await fetch(path);
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (!text.trim() || !text.includes(',')) continue;
+      const rows = parseCSV(text);
+      if (rows.length > 0) { render(rows, path.split('/').pop()); return; }
+    } catch(e) { continue; }
+  }
+  msg.style.display = 'none';
+}
+
+window.addEventListener('DOMContentLoaded', tryAutoload);
+
+// ── Demo ─────────────────────────────────────────────────────
+function loadDemo() {
+  const demo = [
+    { user_input: "Quando foi cunhado o termo inteligência artificial?", response: "O termo foi cunhado por John McCarthy em 1956, durante a Conferência de Dartmouth.", reference: "John McCarthy cunhou o termo em 1956 na Conferência de Dartmouth.", retrieved_contexts: "['Origens (1950s)\\nO termo foi cunhado por John McCarthy em 1956...']", faithfulness: 1.0, answer_correctness: 0.91, answer_relevancy: 0.95, context_precision: 0.88, context_recall: 0.85 },
+    { user_input: "O que foi o Inverno da IA e quando ocorreu?", response: "O Inverno da IA foi um período de desinvestimento entre 1974-1980 e 1987-1993.", reference: "Dois períodos de desinvestimento: 1974-1980 e 1987-1993.", retrieved_contexts: "['Inverno da IA\\nApós promessas exageradas...']", faithfulness: 0.9, answer_correctness: 0.83, answer_relevancy: 0.88, context_precision: 0.75, context_recall: 0.80 },
+    { user_input: "Quantos parâmetros tem o GPT-3?", response: "O GPT-3 possui 175 bilhões de parâmetros.", reference: "175 bilhões de parâmetros.", retrieved_contexts: "['Brasil e IA\\nO Brasil aprovou...', 'Inverno da IA...']", faithfulness: 0.0, answer_correctness: 0.95, answer_relevancy: 0.92, context_precision: 0.30, context_recall: 0.40 },
+    { user_input: "Como o ChatGPT cresceu rapidamente?", response: "O ChatGPT atingiu 1 milhão de usuários em 5 dias.", reference: "Atingiu 1 milhão de usuários em 5 dias após o lançamento.", retrieved_contexts: "['GPT e Modelos de Linguagem\\nO GPT-3...']", faithfulness: 0.8, answer_correctness: 0.78, answer_relevancy: 0.85, context_precision: 0.70, context_recall: 0.72 },
+    { user_input: "Quem propôs o Teste de Turing?", response: "Alan Turing propôs o teste em 1950.", reference: "Alan Turing, em 1950.", retrieved_contexts: "['Origens\\nAlan Turing, em 1950, propôs o Teste de Turing...']", faithfulness: 1.0, answer_correctness: 0.96, answer_relevancy: 0.97, context_precision: 0.93, context_recall: 0.90 },
+    { user_input: "Quais aplicações atuais existem para IA?", response: "Diagnóstico médico, veículos autônomos, reconhecimento de voz e imagem.", reference: "Diagnóstico médico, veículos autônomos, reconhecimento de voz.", retrieved_contexts: "['Aplicações Atuais\\nA IA é aplicada em diagnóstico médico...']", faithfulness: 0.7, answer_correctness: 0.72, answer_relevancy: 0.80, context_precision: 0.65, context_recall: 0.68 },
+    { user_input: "O que foi a AlexNet e qual sua importância?", response: "AlexNet foi uma rede neural que venceu o ImageNet em 2012, inaugurando o deep learning.", reference: "Venceu o ImageNet em 2012 com grande margem, inaugurando a era do deep learning.", retrieved_contexts: "['Deep Learning\\nEm 2012, a AlexNet venceu a competição ImageNet...']", faithfulness: 0.0, answer_correctness: 0.88, answer_relevancy: 0.90, context_precision: 0.35, context_recall: 0.45 },
+    { user_input: "Qual o papel do Brasil na regulação de IA?", response: "O Brasil aprovou em 2024 um marco regulatório para IA.", reference: "O Brasil aprovou em 2024 um marco regulatório, sendo um dos primeiros da América Latina.", retrieved_contexts: "['Brasil e IA\\nO Brasil aprovou em 2024...']", faithfulness: 0.85, answer_correctness: 0.75, answer_relevancy: 0.82, context_precision: 0.78, context_recall: 0.74 },
+  ];
+  render(demo, 'demo_data.csv');
+}
+</script>
+</body>
+</html>
